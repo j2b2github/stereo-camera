@@ -1,0 +1,14 @@
+%YAML:1.0
+---
+Cam_Width: 1280
+Cam_Height: 480
+CamL_id: 2
+CamR_id: 4
+board_w: 9
+board_h: 6
+square_size: 2.4
+output_path: "../data/"
+estimateZ_mode: 0
+estimateZ_videoPathL: "stereoL-001.mp4"
+estimateZ_videoPathR: "stereoR-001.mp4"
+estimateZ_record: 0
