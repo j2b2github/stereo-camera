@@ -4,50 +4,53 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 
-struct Settings {
+struct Settings
+{
 	int Cam_Width;
 	int Cam_Height;
 	int CamL_id;
 	int CamR_id;
 	int board_w;
 	int board_h;
-	float square_size;						// chess board square size, cm
-	std::string strOutPath;					// data path
-	int estimateZ_mode;						// 0: source from video file, 1: source from stereo camera, 2: capture image for calibration Z
-	std::string estimateZ_videoPathL;		// if estimateZ_mode == 0 than need path
-	std::string estimateZ_videoPathR;		// if estimateZ_mode == 0 than need path
-	bool estimateZ_record;					// record demo video
+	float square_size;				  // chess board square size, cm
+	std::string strOutPath;			  // data path
+	int estimateZ_mode;				  // 0: source from video file, 1: source from stereo camera, 2: capture image for calibration Z
+	std::string estimateZ_videoPathL; // if estimateZ_mode == 0 than need path
+	std::string estimateZ_videoPathR; // if estimateZ_mode == 0 than need path
+	bool estimateZ_record;			  // record demo video
 };
 
-struct StereoCameraParameter {
+struct StereoCameraParameter
+{
 	cv::Size sizeImage1;
 	cv::Size sizeImage2;
 
 	// intrinsics
-	cv::Mat M1;		// cameraMatrix1;
-	cv::Mat D1;		// distCoeffs1;
-	cv::Mat M2;		// cameraMatrix2;
-	cv::Mat D2;		// distCoeffs2;
+	cv::Mat M1; // cameraMatrix1;
+	cv::Mat D1; // distCoeffs1;
+	cv::Mat M2; // cameraMatrix2;
+	cv::Mat D2; // distCoeffs2;
 
 	// extrinsics
-	cv::Mat R;		// RotationMatrix;
-	cv::Mat T;		// TranslationVector;
-	cv::Mat R1;		// RotationMatrix1;
-	cv::Mat R2;		// RotationMatrix2;
-	cv::Mat P1;		// ProjectionMatrix1;
-	cv::Mat P2;		// ProjectionMatrix2;
-	cv::Mat Q;		// PerspectiveTransformationMatrix;
+	cv::Mat R;	// RotationMatrix;
+	cv::Mat T;	// TranslationVector;
+	cv::Mat R1; // RotationMatrix1;
+	cv::Mat R2; // RotationMatrix2;
+	cv::Mat P1; // ProjectionMatrix1;
+	cv::Mat P2; // ProjectionMatrix2;
+	cv::Mat Q;	// PerspectiveTransformationMatrix;
 };
 
 bool ReadSettings(std::string strFile, Settings &setting)
 {
 	cv::FileStorage fs(strFile, cv::FileStorage::READ);
 
-	if (!fs.isOpened()) {
+	if (!fs.isOpened())
+	{
 		std::cerr << "File open failed!" << std::endl;
 		return false;
 	}
-	
+
 	fs["Cam_Width"] >> setting.Cam_Width;
 	fs["Cam_Height"] >> setting.Cam_Height;
 	fs["CamL_id"] >> setting.CamL_id;
@@ -84,11 +87,12 @@ bool WriteSettings(std::string strFile, Settings &setting)
 {
 	cv::FileStorage fs(strFile, cv::FileStorage::WRITE);
 
-	if (!fs.isOpened()) {
+	if (!fs.isOpened())
+	{
 		std::cerr << "File open failed!" << std::endl;
 		return false;
 	}
-	
+
 	fs << "Cam_Width" << setting.Cam_Width;
 	fs << "Cam_Height" << setting.Cam_Height;
 	fs << "CamL_id" << setting.CamL_id;
@@ -121,13 +125,12 @@ bool WriteSettings(std::string strFile, Settings &setting)
 	return true;
 }
 
-
-bool ReadStereoCameraParameter(std::string strFile, StereoCameraParameter& param)
+bool ReadStereoCameraParameter(std::string strFile, StereoCameraParameter &param)
 {
 	cv::FileStorage fs(strFile, cv::FileStorage::READ);
 
-    if (!fs.isOpened())
-    {
+	if (!fs.isOpened())
+	{
 		std::cerr << "Error: can not load the stereo camera parameters" << std::endl;
 		return false;
 	}
@@ -157,12 +160,12 @@ bool ReadStereoCameraParameter(std::string strFile, StereoCameraParameter& param
 	return true;
 }
 
-bool WriteStereoCameraParameter(std::string strFile, StereoCameraParameter& param)
+bool WriteStereoCameraParameter(std::string strFile, StereoCameraParameter &param)
 {
 	cv::FileStorage fs(strFile, cv::FileStorage::WRITE);
 
-    if (!fs.isOpened())
-    {
+	if (!fs.isOpened())
+	{
 		std::cerr << "Error: can not save the stereo camera parameters" << std::endl;
 		return false;
 	}
@@ -209,20 +212,20 @@ void SetCameraProperties(cv::VideoCapture &cap, const Settings &setting)
 	if (!cap.set(cv::CAP_PROP_WB_TEMPERATURE, 3800)){					std::cout << cap.getBackendName() << " not set " << cv::CAP_PROP_WB_TEMPERATURE << std::endl;}
 }
 
-bool ReadCommandLine(int argc, char** argv, Settings &setting)
+bool ReadCommandLine(int argc, char **argv, Settings &setting)
 {
 	cv::CommandLineParser parser(argc, argv,
-        "{ help || show help message }"
+		"{ help || show help message }"
 		"{ @stereo_setting ||(required) stereo camera setting for Z-axis estimate}"
 	);
 
-    parser.about("User this script to run stereo-camera.");
-    
-    if (argc != 3)
-    {
-        std::cout << "need setting file(.yml)" << std::endl;
-        return false;
-    }
+	parser.about("User this script to run stereo-camera.");
+
+	if (argc != 3)
+	{
+		std::cout << "need setting file(.yml)" << std::endl;
+		return false;
+	}
 
 	if (!ReadSettings(parser.get<std::string>("@stereo_setting"), setting))
 	{

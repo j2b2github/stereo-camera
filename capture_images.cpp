@@ -6,14 +6,14 @@
 bool CheckLeftRight(int &CalL_id, int &CamR_id, bool &swapped);
 bool Check_n_CreateFolder(std::string strPath);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-    Settings sets;
+	Settings sets;
 	if (!ReadCommandLine(argc, argv, sets))
 	{
 		return -1;
 	}
-	
+
 	bool swapped(false);
 	if (!CheckLeftRight(sets.CamL_id, sets.CamR_id, swapped))
 	{
@@ -34,13 +34,12 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-
 	cv::Mat frameL, frameR, temp;
 	cv::VideoCapture camL_valid(sets.CamL_id, cv::CAP_V4L2), camR_valid(sets.CamR_id, cv::CAP_V4L2);
 
 	SetCameraProperties(camL_valid, sets);
 	SetCameraProperties(camR_valid, sets);
-	
+
 	int64 start{cv::getTickCount()};
 	float time{0};
 
@@ -51,7 +50,7 @@ int main(int argc, char** argv)
 	bool foundL, foundR;
 	int count{0};
 
-	while(true)
+	while (true)
 	{
 		camL_valid >> frameL;
 		camR_valid >> frameR;
@@ -125,8 +124,8 @@ bool CheckLeftRight(int &CamL_id, int &CamR_id, bool &swapped)
 	cv::putText(frameR, "R", cv::Point(frameR.cols / 2, frameR.rows / 2), cv::FONT_HERSHEY_SIMPLEX, 10.0, cv::Scalar(0, 255, 0), 10);
 
 	cv::hconcat(frameL, frameR, temp);
-	cv::putText	(temp, "Checking the right and left camera IDs:", cv::Point(20, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
-	cv::putText	(temp, "Press (y) if IDs are correct and (n) to swap the IDs", cv::Point(20, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+	cv::putText(temp, "Checking the right and left camera IDs:", cv::Point(20, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+	cv::putText(temp, "Press (y) if IDs are correct and (n) to swap the IDs", cv::Point(20, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
 	cv::imshow("left and right frames", temp);
 	std::cout << "Checking the right and left camera IDs:" << std::endl;
 	std::cout << "Press (y) if IDs are correct and (n) to swap the IDs" << std::endl;
@@ -175,4 +174,3 @@ bool Check_n_CreateFolder(std::string strPath)
 
 	return ret;
 }
-

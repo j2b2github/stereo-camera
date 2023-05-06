@@ -5,15 +5,15 @@
 
 #include "common.hpp"
 
-double Distance(const cv::Point& p1, const cv::Point& p2);
+double Distance(const cv::Point &p1, const cv::Point &p2);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     Settings sets;
-	if (!ReadCommandLine(argc, argv, sets))
-	{
-		return -1;
-	}
+    if (!ReadCommandLine(argc, argv, sets))
+    {
+        return -1;
+    }
 
     // Creating vector to store vectors of 3D points for each checkerboard image
     std::vector<std::vector<cv::Point3f>> objpoints;
@@ -41,7 +41,6 @@ int main(int argc, char** argv)
     // Path of the folder containing checkerboard images
     std::string pathL = sets.strOutPath + "ZcalL/*.jpg";
     // std::string pathL = sets.strOutPath + "ZcalL/img_180.jpg";
-
 
     cv::glob(pathL, imagesL);
     // cv::glob(pathR, imagesR);
@@ -86,30 +85,29 @@ int main(int argc, char** argv)
             imgpointsL.push_back(corner_ptsL);
 
             cv::Point iLB = cv::Point(imgpointsL[i][0].x, imgpointsL[i][0].y);
-            cv::Point iLT = cv::Point(imgpointsL[i][CHECKERBOARD[0]-1].x, imgpointsL[i][CHECKERBOARD[0]-1].y);
-            cv::Point iRT = cv::Point(imgpointsL[i][CHECKERBOARD[0]*CHECKERBOARD[1]-1].x, imgpointsL[i][CHECKERBOARD[0]*CHECKERBOARD[1]-1].y);
-            cv::Point iRB = cv::Point(imgpointsL[i][CHECKERBOARD[0]*CHECKERBOARD[1]-CHECKERBOARD[0]].x, imgpointsL[i][CHECKERBOARD[0]*CHECKERBOARD[1]-CHECKERBOARD[0]].y);
-            cv::circle(frameL, iLB, 2, cv::Scalar(0,255,0), 2);
-            cv::circle(frameL, iLT, 2, cv::Scalar(0,255,255), 2);
-            cv::circle(frameL, iRT, 2, cv::Scalar(255,255,255), 2);
-            cv::circle(frameL, iRB, 2, cv::Scalar(255,255,0), 2);
+            cv::Point iLT = cv::Point(imgpointsL[i][CHECKERBOARD[0] - 1].x, imgpointsL[i][CHECKERBOARD[0] - 1].y);
+            cv::Point iRT = cv::Point(imgpointsL[i][CHECKERBOARD[0] * CHECKERBOARD[1] - 1].x, imgpointsL[i][CHECKERBOARD[0] * CHECKERBOARD[1] - 1].y);
+            cv::Point iRB = cv::Point(imgpointsL[i][CHECKERBOARD[0] * CHECKERBOARD[1] - CHECKERBOARD[0]].x, imgpointsL[i][CHECKERBOARD[0] * CHECKERBOARD[1] - CHECKERBOARD[0]].y);
+            cv::circle(frameL, iLB, 2, cv::Scalar(0, 255, 0), 2);
+            cv::circle(frameL, iLT, 2, cv::Scalar(0, 255, 255), 2);
+            cv::circle(frameL, iRT, 2, cv::Scalar(255, 255, 255), 2);
+            cv::circle(frameL, iRB, 2, cv::Scalar(255, 255, 0), 2);
 
             double iwidth = Distance(iLT, iRT);
             double iheight = Distance(iLT, iLB);
 
             cv::Point oLB = cv::Point(objpoints[i][0].x, objpoints[i][0].y);
-            cv::Point oLT = cv::Point(objpoints[i][CHECKERBOARD[0]-1].x, objpoints[i][CHECKERBOARD[0]-1].y);
-            cv::Point oRT = cv::Point(objpoints[i][CHECKERBOARD[0]*CHECKERBOARD[1]-1].x, objpoints[i][CHECKERBOARD[0]*CHECKERBOARD[1]-1].y);
-            cv::Point oRB = cv::Point(objpoints[i][CHECKERBOARD[0]*CHECKERBOARD[1]-CHECKERBOARD[0]].x, objpoints[i][CHECKERBOARD[0]*CHECKERBOARD[1]-CHECKERBOARD[0]].y);
+            cv::Point oLT = cv::Point(objpoints[i][CHECKERBOARD[0] - 1].x, objpoints[i][CHECKERBOARD[0] - 1].y);
+            cv::Point oRT = cv::Point(objpoints[i][CHECKERBOARD[0] * CHECKERBOARD[1] - 1].x, objpoints[i][CHECKERBOARD[0] * CHECKERBOARD[1] - 1].y);
+            cv::Point oRB = cv::Point(objpoints[i][CHECKERBOARD[0] * CHECKERBOARD[1] - CHECKERBOARD[0]].x, objpoints[i][CHECKERBOARD[0] * CHECKERBOARD[1] - CHECKERBOARD[0]].y);
 
             double owidth = Distance(oLT, oRT);
             double oheight = Distance(oLT, oLB);
 
             std::cout << imagesL[i] << ", iwidth=" << iwidth << ", iheight=" << iheight << ", owidth=" << owidth << ", oheight=" << oheight
-                        << ", cm / pixel = (" << owidth / iwidth << ", "<< oheight / iheight << ")"
-                        << ", (width + height) / 2 = [" << ((owidth / iwidth) + (oheight / iheight)) / 2 << "] cm/pixel" << std::endl;
+                      << ", cm / pixel = (" << owidth / iwidth << ", " << oheight / iheight << ")"
+                      << ", (width + height) / 2 = [" << ((owidth / iwidth) + (oheight / iheight)) / 2 << "] cm/pixel" << std::endl;
 
-            
             size_t start = imagesL[i].find_last_of('_') + 1;
             size_t end = imagesL[i].find_last_of('.');
             std::string strDistance = imagesL[i].substr(start, 3);
@@ -117,16 +115,15 @@ int main(int argc, char** argv)
             std::cout << out << std::endl;
             fullString += out;
         }
-        
+
         cv::imshow(imagesL[i], frameL);
-        
+
         cv::waitKey(0);
         cv::destroyWindow(imagesL[i]);
     }
 
-
     std::ofstream writeFile;
-    writeFile.open( sets.strOutPath + "Zcal.txt");
+    writeFile.open(sets.strOutPath + "Zcal.txt");
     writeFile.write(fullString.c_str(), fullString.size());
     writeFile.close();
     return 0;
@@ -134,7 +131,8 @@ int main(int argc, char** argv)
     cv::destroyAllWindows();
 }
 
-double Distance(const cv::Point& p1, const cv::Point& p2){
+double Distance(const cv::Point &p1, const cv::Point &p2)
+{
 
     double distance;
 

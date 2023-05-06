@@ -9,20 +9,20 @@ void GetPts(Settings sets, std::vector<std::vector<cv::Point3f>> &objpoints,
             cv::Size &sizeImageL, cv::Size &sizeImageR);
 
 double CheckCalibrationQuality(const std::vector<cv::String> &imagesL,
-                             const std::vector<cv::String> &imagesR,
-                             const std::vector<std::vector<cv::Point2f>> &imgpointsL,
-                             const std::vector<std::vector<cv::Point2f>> &imgpointsR,
-                             const cv::Mat &new_mtxL, const cv::Mat &new_mtxR,
-                             const cv::Mat &distL, const cv::Mat &distR,
-                             const cv::Mat &Fmat);
+                               const std::vector<cv::String> &imagesR,
+                               const std::vector<std::vector<cv::Point2f>> &imgpointsL,
+                               const std::vector<std::vector<cv::Point2f>> &imgpointsR,
+                               const cv::Mat &new_mtxL, const cv::Mat &new_mtxR,
+                               const cv::Mat &distL, const cv::Mat &distR,
+                               const cv::Mat &Fmat);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     Settings sets;
-	if (!ReadCommandLine(argc, argv, sets))
-	{
-		return -1;
-	}
+    if (!ReadCommandLine(argc, argv, sets))
+    {
+        return -1;
+    }
 
     // Creating vector to store vectors of 3D points for each checkerboard image
     std::vector<std::vector<cv::Point3f>> objpoints;
@@ -35,8 +35,6 @@ int main(int argc, char** argv)
 
     cv::Size sizeImageL, sizeImageR;
     GetPts(sets, objpoints, imgpointsL, imgpointsR, imagesL, imagesR, sizeImageL, sizeImageR);
-
-    
 
     /*
      * Performing camera calibration by
@@ -52,18 +50,17 @@ int main(int argc, char** argv)
     param.M1 = cv::initCameraMatrix2D(objpoints, imgpointsL, sizeImageL, 0);
     param.M2 = cv::initCameraMatrix2D(objpoints, imgpointsR, sizeImageR, 0);
 
-
     // Here we fix the intrinsic camara matrixes so that only Rot, Trns, Emat and Fmat
     // are calculated. Hence intrinsic parameters are the same.
     cv::Mat Emat, Fmat;
 
     int flag = 0;
     flag = cv::CALIB_FIX_ASPECT_RATIO +
-        cv::CALIB_ZERO_TANGENT_DIST +
-        cv::CALIB_USE_INTRINSIC_GUESS +
-        cv::CALIB_SAME_FOCAL_LENGTH +
-        cv::CALIB_RATIONAL_MODEL +
-        cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5;
+           cv::CALIB_ZERO_TANGENT_DIST +
+           cv::CALIB_USE_INTRINSIC_GUESS +
+           cv::CALIB_SAME_FOCAL_LENGTH +
+           cv::CALIB_RATIONAL_MODEL +
+           cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5;
 
     // This step is performed to transformation between the two cameras and calculate Essential and
     // Fundamenatl matrix
@@ -75,7 +72,7 @@ int main(int argc, char** argv)
         sizeImageR, param.R, param.T, Emat, Fmat,
         flag,
         cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 30, 1e-6));
-    
+
     CheckCalibrationQuality(imagesL,
                             imagesR,
                             imgpointsL,
@@ -83,7 +80,6 @@ int main(int argc, char** argv)
                             param.M1, param.M2,
                             param.D1, param.D2,
                             Fmat);
-
 
     cv::Rect validRoiL, validRoiR;
 
@@ -95,10 +91,9 @@ int main(int argc, char** argv)
         param.M1, param.D1,
         param.M2, param.D2,
         sizeImageR, param.R, param.T, param.R1, param.R2, param.P1, param.P2, param.Q,
-            flag2, 1, sizeImageR, &validRoiL, &validRoiR);
-    
+        flag2, 1, sizeImageR, &validRoiL, &validRoiR);
+
     WriteStereoCameraParameter(sets.strOutPath + "stereoCameraParameter.yml", param);
-    
 
     // Use the rotation matrixes for stereo rectification and camera intrinsics for undistorting the image
     // Compute the rectification map (mapping between the original image pixels and
@@ -124,18 +119,17 @@ int main(int argc, char** argv)
                                 Right_Stereo_Map1,
                                 Right_Stereo_Map2);
 
-
     // 영상을 조정하고 시차 지도를 구한다.
-	cv::Mat canvas;
-	double sf;
-	int w, h;
+    cv::Mat canvas;
+    double sf;
+    int w, h;
     sf = 600. / std::max(sizeImageR.width, sizeImageR.height);
     w = cvRound(sizeImageR.width * sf);
     h = cvRound(sizeImageR.height * sf);
     canvas.create(h, w * 2, CV_8UC3);
 
-	for (int i = 0; i < imagesL.size(); i++)
-	{
+    for (int i = 0; i < imagesL.size(); i++)
+    {
         cv::Mat imgL = cv::imread(imagesL[i], 0), rimgL, cimgL;
         cv::remap(imgL, rimgL, Left_Stereo_Map1, Left_Stereo_Map2, cv::INTER_LINEAR);
         cvtColor(rimgL, cimgL, cv::COLOR_GRAY2BGR);
@@ -157,12 +151,12 @@ int main(int argc, char** argv)
             line(canvas, cv::Point(0, j), cv::Point(canvas.cols, j), cv::Scalar(0, 255, 0), 1, 8);
         }
 
-		imshow("rectified", canvas);
+        imshow("rectified", canvas);
 
-		char c = (char)cv::waitKey();
-		if (c == 27 || c == 'q' || c == 'Q')
-			break;
-	}
+        char c = (char)cv::waitKey();
+        if (c == 27 || c == 'q' || c == 'Q')
+            break;
+    }
 
     return 0;
 }
@@ -251,28 +245,28 @@ void GetPts(Settings sets, std::vector<std::vector<cv::Point3f>> &objpoints,
 }
 
 double CheckCalibrationQuality(const std::vector<cv::String> &imagesL,
-                             const std::vector<cv::String> &imagesR,
-                             const std::vector<std::vector<cv::Point2f>> &imgpointsL,
-                             const std::vector<std::vector<cv::Point2f>> &imgpointsR,
-                             const cv::Mat &new_mtxL, const cv::Mat &new_mtxR,
-                             const cv::Mat &distL, const cv::Mat &distR,
-                             const cv::Mat &Fmat)
+                               const std::vector<cv::String> &imagesR,
+                               const std::vector<std::vector<cv::Point2f>> &imgpointsL,
+                               const std::vector<std::vector<cv::Point2f>> &imgpointsR,
+                               const cv::Mat &new_mtxL, const cv::Mat &new_mtxR,
+                               const cv::Mat &distL, const cv::Mat &distR,
+                               const cv::Mat &Fmat)
 {
     //////////////////////////////////////////////////////////////////
     // 보정 품질 검사:
-	// 출력 기본 행렬은 사실상 모든 출력 정보를 포함하기 때문에
-	// 에피폴라 기하 제약을 이용하여 보정 품질을 검사할 수 있다.
-	// 에피폴라 기하 제약: m2^t*F*m1=0
-	// CALIBRATION QUALITY CHECK
-	// because the output fundamental matrix implicitly
-	// includes all the output information,
-	// we can check the quality of calibration using the
-	// epipolar geometry constraint: m2^t*F*m1=0
-	double err = 0;
-	int npoints = 0;
+    // 출력 기본 행렬은 사실상 모든 출력 정보를 포함하기 때문에
+    // 에피폴라 기하 제약을 이용하여 보정 품질을 검사할 수 있다.
+    // 에피폴라 기하 제약: m2^t*F*m1=0
+    // CALIBRATION QUALITY CHECK
+    // because the output fundamental matrix implicitly
+    // includes all the output information,
+    // we can check the quality of calibration using the
+    // epipolar geometry constraint: m2^t*F*m1=0
+    double err = 0;
+    int npoints = 0;
     std::vector<cv::Vec3f> linesL, linesR;
-	for (int i = 0; i < imagesL.size(); i++)
-	{
+    for (int i = 0; i < imagesL.size(); i++)
+    {
         // 왜곡이 제거된 상태에서 동작한다.
         cv::Mat imgPtL = cv::Mat(imgpointsL[i]);
         cv::undistortPoints(imgPtL, imgPtL, new_mtxL, distL, cv::Mat(), new_mtxL);
@@ -282,16 +276,16 @@ double CheckCalibrationQuality(const std::vector<cv::String> &imagesL,
         cv::undistortPoints(imgPtR, imgPtR, new_mtxR, distR, cv::Mat(), new_mtxR);
         cv::computeCorrespondEpilines(imgPtR, 2, Fmat, linesR);
 
-		for (int j = 0; j < imgpointsL.size(); j++)
-		{
-			double errij = fabs(imgpointsL[i][j].x * linesR[j][0] +
-								imgpointsL[i][j].y * linesR[j][1] + linesR[j][2]) +
-						   fabs(imgpointsR[i][j].x * linesL[j][0] +
-								imgpointsR[i][j].y * linesL[j][1] + linesL[j][2]);
-			err += errij;
-		}
-		npoints += imgpointsL.size();
-	}
+        for (int j = 0; j < imgpointsL.size(); j++)
+        {
+            double errij = fabs(imgpointsL[i][j].x * linesR[j][0] +
+                                imgpointsL[i][j].y * linesR[j][1] + linesR[j][2]) +
+                           fabs(imgpointsR[i][j].x * linesL[j][0] +
+                                imgpointsR[i][j].y * linesL[j][1] + linesL[j][2]);
+            err += errij;
+        }
+        npoints += imgpointsL.size();
+    }
     std::cout << "average epipolar err = " << err / npoints << std::endl;
 
     return err / npoints;
