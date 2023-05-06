@@ -4,6 +4,10 @@
 stereo camera를 활용하여 거리 정보를 구하면 거리의 변화에도 동일한 물체에 대해서 동일한 길이와 면적을 구할 수 있다.
 
 
+## 환경
+* setup_environment.sh
+
+
 ## 순서
 1. capture_images.cpp
 
