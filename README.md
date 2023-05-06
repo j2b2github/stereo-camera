@@ -10,12 +10,14 @@ stereo camera를 활용하여 거리 정보를 구하면 거리의 변화에도 
     스테레오 캘리브레이션을 위한 이미지 캡쳐<br/>
 2. calibrate.cpp<br/>
     스테레오 캘리브레이션<br/>
-3. estimateZ.cpp, settings/default.yml 수정 -> estimateZ_mode: 2(캘리브레이션 모드)<br/>
+3. estimateZ.cpp<br/>
     Z축 캘리브레이션을 위한 단위 거리별 이미지 캡쳐<br/>
+    settings/default.yml을 열어서 estimateZ_mode: 2(Z축 캘리브레이션 모드)로 수정 후 실행<br/>
 4. calibrateZ.cpp<br/>
     Z축 캘리브레이션<br/>
-5. estimateZ.cpp, settings/default.yml 수정 -> estimateZ_mode: 1(스테레오 카메라 모드)<br/>
-    거리 추정, 거리에 따른 원의 지름과 면적 측정<br/><br/>
+5. estimateZ.cpp<br/>
+    거리 추정, 거리에 따른 원의 지름과 면적 측정<br/>
+    settings/default.yml을 열어서 estimateZ_mode: 1(스테레오 카메라 모드)로 수정 후 실행<br/><br/>
 
 ## 기타
 * common.hpp<br/>
