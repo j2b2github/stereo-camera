@@ -29,3 +29,7 @@ stereo camera를 활용하여 거리 정보를 구하면 거리의 변화에도 
 * record_stereo_cideo.cpp
 
     스테레오 영상 저장용
+
+
+## 데모 영상
+https://youtu.be/H-9846qvp3w
