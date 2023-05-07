@@ -14,7 +14,7 @@ stereo camera 설정에 대한 설정 파일이다.<br/><br/>
 * board_h<br/>
     chess board height<br/>
 * square_size<br/>
-    체스판에서 검은색 정사각형의 한 변의 길이<br/>
+    체스판에서 검은색 정사각형의 한 변의 길이, cm 단위<br/>
 * output_path<br/>
     output path<br/>
 * estimateZ_videoFileL<br/>
