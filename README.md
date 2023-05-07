@@ -7,9 +7,9 @@ stereo camera를 활용하여 거리 정보를 구하면 거리의 변화에도 
 
 ## 빌드
     ```bash
-    mkdir build && cd build
-    cmake ..
-    make
+    $ mkdir build && cd build
+    $ cmake ..
+    $ make
     ```
 
 ## 실행 순서
