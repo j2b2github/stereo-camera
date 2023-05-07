@@ -12,12 +12,12 @@ struct Settings
 	int CamR_id;
 	int board_w;
 	int board_h;
-	float square_size;				  // chess board square size, cm
-	std::string strOutPath;			  // data path
-	int estimateZ_mode;				  // 0: source from video file, 1: source from stereo camera, 2: capture image for calibration Z
-	std::string estimateZ_videoPathL; // if estimateZ_mode == 0 than need path
-	std::string estimateZ_videoPathR; // if estimateZ_mode == 0 than need path
-	bool estimateZ_record;			  // record demo video
+	float square_size;				  	// chess board square size, cm
+	std::string strOutPath;			  	// data path
+	std::string estimateZ_videoFileL; 	// if estimateZ_mode == 0 than need file
+	std::string estimateZ_videoFileR; 	// if estimateZ_mode == 0 than need file
+	int estimateZ_validDistanceStart;	// logitech c920에서는 30cm ~ 110cm 범위에서 쓸만함, camera resolution과 chess board 크기에 따라 변경 가능
+	int estimateZ_validDistanceEnd;		// logitech c920에서는 30cm ~ 110cm 범위에서 쓸만함, camera resolution과 chess board 크기에 따라 변경 가능
 };
 
 struct StereoCameraParameter
@@ -59,10 +59,10 @@ bool ReadSettings(std::string strFile, Settings &setting)
 	fs["board_h"] >> setting.board_h;
 	fs["square_size"] >> setting.square_size;
 	fs["output_path"] >> setting.strOutPath;
-	fs["estimateZ_mode"] >> setting.estimateZ_mode;
-	fs["estimateZ_videoPathL"] >> setting.estimateZ_videoPathL;
-	fs["estimateZ_videoPathR"] >> setting.estimateZ_videoPathR;
-	fs["estimateZ_record"] >> setting.estimateZ_record;
+	fs["estimateZ_videoFileL"] >> setting.estimateZ_videoFileL;
+	fs["estimateZ_videoFileR"] >> setting.estimateZ_videoFileR;
+	fs["estimateZ_validDistanceStart"] >> setting.estimateZ_validDistanceStart;
+	fs["estimateZ_validDistanceEnd"] >> setting.estimateZ_validDistanceEnd;
 
 	fs.release();
 
@@ -75,10 +75,10 @@ bool ReadSettings(std::string strFile, Settings &setting)
 	std::cout << "board_h:" << setting.board_h << std::endl;
 	std::cout << "square_size:" << setting.square_size << std::endl;
 	std::cout << "output_path:" << setting.strOutPath << std::endl;
-	std::cout << "estimateZ_mode:" << setting.estimateZ_mode << std::endl;
-	std::cout << "estimateZ_videoPathL:" << setting.estimateZ_videoPathL << std::endl;
-	std::cout << "estimateZ_videoPathR:" << setting.estimateZ_videoPathR << std::endl;
-	std::cout << "estimateZ_record:" << setting.estimateZ_record << std::endl;
+	std::cout << "estimateZ_videoFileL:" << setting.estimateZ_videoFileL << std::endl;
+	std::cout << "estimateZ_videoFileR:" << setting.estimateZ_videoFileR << std::endl;
+	std::cout << "estimateZ_validDistanceStart:" << setting.estimateZ_validDistanceStart << " cm" << std::endl;
+	std::cout << "estimateZ_validDistanceEnd:" << setting.estimateZ_validDistanceEnd << " cm" << std::endl;
 
 	return true;
 }
@@ -101,10 +101,10 @@ bool WriteSettings(std::string strFile, Settings &setting)
 	fs << "board_h" << setting.board_h;
 	fs << "square_size" << setting.square_size;
 	fs << "output_path" << setting.strOutPath;
-	fs << "estimateZ_mode" << setting.estimateZ_mode;
-	fs << "estimateZ_videoPathL" << setting.estimateZ_videoPathL;
-	fs << "estimateZ_videoPathR" << setting.estimateZ_videoPathR;
-	fs << "estimateZ_record" << setting.estimateZ_record;
+	fs << "estimateZ_videoFileL" << setting.estimateZ_videoFileL;
+	fs << "estimateZ_videoFileR" << setting.estimateZ_videoFileR;
+	fs << "estimateZ_validDistanceStart" << setting.estimateZ_validDistanceStart;
+	fs << "estimateZ_validDistanceEnd" << setting.estimateZ_validDistanceEnd;
 
 	fs.release();
 
@@ -117,10 +117,10 @@ bool WriteSettings(std::string strFile, Settings &setting)
 	std::cout << "board_h:" << setting.board_h << std::endl;
 	std::cout << "square_size:" << setting.square_size << std::endl;
 	std::cout << "output_path:" << setting.strOutPath << std::endl;
-	std::cout << "estimateZ_mode:" << setting.estimateZ_mode << std::endl;
-	std::cout << "estimateZ_videoPathL:" << setting.estimateZ_videoPathL << std::endl;
-	std::cout << "estimateZ_videoPathR:" << setting.estimateZ_videoPathR << std::endl;
-	std::cout << "estimateZ_record:" << setting.estimateZ_record << std::endl;
+	std::cout << "estimateZ_videoFileL:" << setting.estimateZ_videoFileL << std::endl;
+	std::cout << "estimateZ_videoFileR:" << setting.estimateZ_videoFileR << std::endl;
+	std::cout << "estimateZ_validDistanceStart:" << setting.estimateZ_validDistanceStart << " cm" << std::endl;
+	std::cout << "estimateZ_validDistanceEnd:" << setting.estimateZ_validDistanceEnd << " cm" << std::endl;
 
 	return true;
 }
@@ -210,30 +210,6 @@ void SetCameraProperties(cv::VideoCapture &cap, const Settings &setting)
 	if (!cap.set(cv::CAP_PROP_FOCUS, 0)){								std::cout << cap.getBackendName() << " not set " << cv::CAP_PROP_FOCUS << std::endl;}
 	if (!cap.set(cv::CAP_PROP_AUTO_WB, 0)){								std::cout << cap.getBackendName() << " not set " << cv::CAP_PROP_AUTO_WB << std::endl;}
 	if (!cap.set(cv::CAP_PROP_WB_TEMPERATURE, 3800)){					std::cout << cap.getBackendName() << " not set " << cv::CAP_PROP_WB_TEMPERATURE << std::endl;}
-}
-
-bool ReadCommandLine(int argc, char **argv, Settings &setting)
-{
-	cv::CommandLineParser parser(argc, argv,
-		"{ help || show help message }"
-		"{ @stereo_setting ||(required) stereo camera setting for Z-axis estimate}"
-	);
-
-	parser.about("User this script to run stereo-camera.");
-
-	if (argc != 3)
-	{
-		std::cout << "need setting file(.yml)" << std::endl;
-		return false;
-	}
-
-	if (!ReadSettings(parser.get<std::string>("@stereo_setting"), setting))
-	{
-		std::cout << "read setting error." << std::endl;
-		return false;
-	}
-
-	return true;
 }
 
 #endif // !COMMON_HPP

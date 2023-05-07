@@ -19,22 +19,49 @@ bool GetRectifiedMap(const Settings &sets,
 					 cv::Mat &Right_Stereo_Map1, cv::Mat &Right_Stereo_Map2,
 					 cv::Rect &validRoiL, cv::Rect &validRoiR);
 double GetAvgZ_circle(const cv::Mat &matXYZ, const cv::Vec3f &circle);
-void houghtcircle(cv::Mat &img, const cv::Mat &matXYZ, std::map<int, double> table);
+void houghtcircle(cv::Mat &img, const cv::Mat &matXYZ, std::map<int, double> table, int validStart, int validEnd);
 
 int main(int argc, char **argv)
 {
-	Settings sets;
-	if (!ReadCommandLine(argc, argv, sets))
+	cv::CommandLineParser parser(argc, argv,
+		"{ help || show help message }"
+		"{ @stereo_setting || .yml file for stereo camera setting }"
+		"{ mode |0| 0: source from video file "
+					"1: source from stereo camera "
+					"2: capture image for calibration Z }"
+		"{ record |false| record demo video }"
+	);
+
+	parser.about("Use this script to run estimateZ");
+
+    if (argc == 1 || parser.has("help"))
+    {
+        parser.printMessage();
+        return 0;
+    }
+
+    Settings sets;
+	if (!ReadSettings(parser.get<std::string>("@stereo_setting"), sets))
 	{
+		std::cout << "read setting error." << std::endl;
 		return -1;
 	}
+	int mode = parser.get<int>("mode");
+	bool record = parser.get<bool>("record");
+
+
+    if (!parser.check())
+    {
+        parser.printErrors();
+        return -1;
+    }
 
 	cv::VideoCapture cam_0, cam_1;
 
-	if (sets.estimateZ_mode == 0)
+	if (mode == 0)
 	{
-		cam_0.open(sets.strOutPath + sets.estimateZ_videoPathL);
-		cam_1.open(sets.strOutPath + sets.estimateZ_videoPathR);
+		cam_0.open(sets.strOutPath + sets.estimateZ_videoFileL);
+		cam_1.open(sets.strOutPath + sets.estimateZ_videoFileR);
 	}
 	else
 	{
@@ -58,7 +85,7 @@ int main(int argc, char **argv)
 
 	// z 축 캘리브레이션
 	std::map<int, double> table;
-	if (sets.estimateZ_mode == 2)
+	if (mode == 2)
 	{
 		Check_n_CreateFolder_Z_calibration(sets.strOutPath);
 	}
@@ -109,12 +136,14 @@ int main(int argc, char **argv)
 
 	cv::Mat frame_0, frame_1;
 
-	int w = cvRound(cam_0.get(cv::CAP_PROP_FRAME_WIDTH));
-	int h = cvRound(cam_0.get(cv::CAP_PROP_FRAME_HEIGHT));
-	cv::Size sizeOutput(w * 2, h * 2);
+	int wL = cvRound(cam_0.get(cv::CAP_PROP_FRAME_WIDTH));
+	int hL = cvRound(cam_0.get(cv::CAP_PROP_FRAME_HEIGHT));
+	int wR = cvRound(cam_1.get(cv::CAP_PROP_FRAME_WIDTH));
+	int hR = cvRound(cam_1.get(cv::CAP_PROP_FRAME_HEIGHT));
+	cv::Size sizeOutput(wL + wR, hL +hR);
 
 	cv::VideoWriter demoVideo;
-	if (sets.estimateZ_record)
+	if (record)
 	{
 		// 결과 비디오 저장
 		double fps = cam_0.get(cv::CAP_PROP_FPS);
@@ -164,7 +193,7 @@ int main(int argc, char **argv)
 		reprojectImageTo3D(floatDisp, xyz, param.Q, true);
 
 		// Z 캘리브레이션용 이미지 취득
-		if (sets.estimateZ_mode == 2)
+		if (mode == 2)
 		{
 			// 사각형 안의 평균 Z 값
 			cv::Point2d lt(frame_0.cols / 2 - 10, frame_0.rows / 2 - 10), rb(frame_0.cols / 2 + 10, frame_0.rows / 2 + 10);
@@ -175,7 +204,7 @@ int main(int argc, char **argv)
 				// 테스트 결과 30cm ~ 110cm
 				// 카메라 해상도를 높이고 L,R 카메라 사이를 넓히면 더 멀리까지 가능할 듯...
 				// 110cm를 넘어가면 chess board 인식을 정확히 못한다.
-				if (int(avgZ) > 30 && int(avgZ) < 110)
+				if (int(avgZ) > sets.estimateZ_validDistanceStart && int(avgZ) < sets.estimateZ_validDistanceEnd)
 				{
 					cv::imwrite(sets.strOutPath + "ZcalL/img_" + cv::format("%03d", int(avgZ)) + ".jpg", frame_0);
 					std::cout << sets.strOutPath + "ZcalL/img_" + cv::format("%03d", int(avgZ)) + ".jpg" << std::endl;
@@ -188,33 +217,36 @@ int main(int argc, char **argv)
 		}
 
 		cv::Mat circle = frame_0.clone();
-		houghtcircle(circle, xyz, table);
+		houghtcircle(circle, xyz, table, sets.estimateZ_validDistanceStart, sets.estimateZ_validDistanceEnd);
 
 		// result display
-		cv::Rect validRoiDisp = validRoiL & validRoiR;
-		rectangle(frame_0, validRoiL, cv::Scalar(0, 0, 255), 3, 8);
+		cv::rectangle(frame_0, validRoiL, cv::Scalar(0, 0, 255), 3, 8);
 		cv::putText(frame_0, "left", cv::Point(20, 40), cv::FONT_HERSHEY_PLAIN, 2.0, cv::Scalar(0, 255, 0), 2);
-		rectangle(frame_1, validRoiR, cv::Scalar(0, 0, 255), 3, 8);
+
+		cv::rectangle(frame_1, validRoiR, cv::Scalar(0, 0, 255), 3, 8);
 		cv::putText(frame_1, "right", cv::Point(20, 40), cv::FONT_HERSHEY_PLAIN, 2.0, cv::Scalar(0, 255, 0), 2);
-		rectangle(dispColor, validRoiDisp, cv::Scalar(0, 0, 255), 3, 8);
+
+		cv::Rect validRoiDisp = validRoiL & validRoiR;
+		cv::rectangle(dispColor, validRoiDisp, cv::Scalar(0, 0, 255), 3, 8);
 		cv::putText(dispColor, "disparity", cv::Point(20, 40), cv::FONT_HERSHEY_PLAIN, 2.0, cv::Scalar(0, 255, 0), 2);
-		rectangle(circle, validRoiDisp, cv::Scalar(0, 0, 255), 3, 8);
+
+		cv::rectangle(circle, validRoiDisp, cv::Scalar(0, 0, 255), 3, 8);
 		cv::putText(circle, "circle", cv::Point(20, 40), cv::FONT_HERSHEY_PLAIN, 2.0, cv::Scalar(0, 255, 0), 2);
 
 		cv::Mat canvas(sizeOutput, CV_8UC3);
-		cv::Mat canvasPartL = canvas(cv::Rect(0, 0, w, h));
+		cv::Mat canvasPartL = canvas(cv::Rect(0, 0, wL, hL));
 		frame_0.copyTo(canvasPartL);
-		cv::Mat canvasPartR = canvas(cv::Rect(w, 0, w, h));
+		cv::Mat canvasPartR = canvas(cv::Rect(wL, 0, wR, hR));
 		frame_1.copyTo(canvasPartR);
-		cv::Mat canvasPartDispColor = canvas(cv::Rect(0, h, w, h));
+		cv::Mat canvasPartDispColor = canvas(cv::Rect(0, hL, wL, hL));
 		dispColor.copyTo(canvasPartDispColor);
-		cv::Mat canvasPartRB = canvas(cv::Rect(w, h, w, h));
+		cv::Mat canvasPartRB = canvas(cv::Rect(wL, hL, wL, hL));
 		circle.copyTo(canvasPartRB);
 
 		cv::imshow("result", canvas);
 
 		// 결과 비디오 저장
-		if (sets.estimateZ_record)
+		if (record)
 		{
 			demoVideo << canvas;
 		}
@@ -358,7 +390,7 @@ double GetAvgZ_circle(const cv::Mat &matXYZ, const cv::Vec3f &circle)
 	return sum / cnt;
 }
 
-void houghtcircle(cv::Mat &img, const cv::Mat &matXYZ, std::map<int, double> table)
+void houghtcircle(cv::Mat &img, const cv::Mat &matXYZ, std::map<int, double> table, int validStart, int validEnd)
 {
 	cv::Mat gray;
 	cvtColor(img, gray, cv::COLOR_BGR2GRAY);
@@ -378,7 +410,7 @@ void houghtcircle(cv::Mat &img, const cv::Mat &matXYZ, std::map<int, double> tab
 		cv::Point center = cv::Point(c[0], c[1]);
 		double avgZ = GetAvgZ_circle(matXYZ, c);
 
-		if (int(avgZ) > 30 && int(avgZ) < 110)
+		if (int(avgZ) > validStart && int(avgZ) < validEnd)
 		{
 			// circle center
 			cv::circle(img, center, 1, cv::Scalar(0, 100, 100), 3, cv::LINE_AA);

@@ -8,9 +8,18 @@ bool Check_n_CreateFolder(std::string strPath);
 
 int main(int argc, char **argv)
 {
-	Settings sets;
-	if (!ReadCommandLine(argc, argv, sets))
+    Settings sets;
+
+    if (argc != 2)
+    {
+        std::cout << "need setting file(.yml)" << std::endl;
+        return -1;
+    }
+
+	std::string strSettingPath(argv[1]);
+    if (!ReadSettings(strSettingPath, sets))
 	{
+		std::cout << "read setting error." << std::endl;
 		return -1;
 	}
 
@@ -23,7 +32,7 @@ int main(int argc, char **argv)
 	{
 		if (swapped)
 		{
-			if (!WriteSettings(argv[1], sets))
+			if (!WriteSettings(strSettingPath, sets))
 				return -1;
 		}
 	}
@@ -79,9 +88,9 @@ int main(int argc, char **argv)
 		if ((foundL == true) && (foundR == true) && (time > 10))
 		{
 			count++;
-			cv::imwrite(sets.strOutPath + "stereoL/img_" + std::to_string(count) + ".jpg", frameL);
-			cv::imwrite(sets.strOutPath + "stereoR/img_" + std::to_string(count) + ".jpg", frameR);
-			std::cout << sets.strOutPath + "stereoL/img_" + std::to_string(count) + ".jpg" << std::endl;
+			cv::imwrite(sets.strOutPath + "stereoL/img_" + cv::format("%03d", count) + ".jpg", frameL);
+			cv::imwrite(sets.strOutPath + "stereoR/img_" + cv::format("%03d", count) + ".jpg", frameR);
+			std::cout << sets.strOutPath + "stereoL/img_" + cv::format("%03d", count) + ".jpg" << std::endl;
 		}
 
 		if (time > 10)

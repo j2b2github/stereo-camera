@@ -19,10 +19,18 @@ double CheckCalibrationQuality(const std::vector<cv::String> &imagesL,
 int main(int argc, char **argv)
 {
     Settings sets;
-    if (!ReadCommandLine(argc, argv, sets))
+
+    if (argc != 2)
     {
+        std::cout << "need setting file(.yml)" << std::endl;
         return -1;
     }
+
+    if (!ReadSettings(argv[1], sets))
+	{
+		std::cout << "read setting error." << std::endl;
+		return -1;
+	}
 
     // Creating vector to store vectors of 3D points for each checkerboard image
     std::vector<std::vector<cv::Point3f>> objpoints;

@@ -5,9 +5,18 @@
 
 int main(int argc, char **argv)
 {
-	Settings sets;
-	if (!ReadCommandLine(argc, argv, sets))
+    Settings sets;
+
+    if (argc != 2)
+    {
+        std::cout << "need setting file(.yml)" << std::endl;
+        return -1;
+    }
+
+	std::string strSettingPath(argv[1]);
+    if (!ReadSettings(strSettingPath, sets))
 	{
+		std::cout << "read setting error." << std::endl;
 		return -1;
 	}
 
@@ -25,16 +34,19 @@ int main(int argc, char **argv)
 	int w = cvRound(capL.get(cv::CAP_PROP_FRAME_WIDTH));
 	int h = cvRound(capL.get(cv::CAP_PROP_FRAME_HEIGHT));
 	double fps = capL.get(cv::CAP_PROP_FPS);
-
 	int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
 	int delay = cvRound(1000 / fps);
 
 	auto now = std::chrono::system_clock::now();
-	std::time_t end_time = std::chrono::system_clock::to_time_t(now);
-	std::cout << "Current Time and Date: " << std::ctime(&end_time) << std::endl;
+	std::time_t timeCurrent = std::chrono::system_clock::to_time_t(now);
+	std::string strCurTime = std::ctime(&timeCurrent);
+	strCurTime = strCurTime.substr(0, strCurTime.length()-1);
+	std::cout << "Current Time and Date: " << strCurTime << std::endl;
 
-	cv::VideoWriter outputVideoL(sets.strOutPath + "stereoL-" + std::ctime(&end_time) + ".mp4", fourcc, fps, cv::Size(w, h));
-	cv::VideoWriter outputVideoR(sets.strOutPath + "stereoR-" + std::ctime(&end_time) + ".mp4", fourcc, fps, cv::Size(w, h));
+	std::string strFilenameL = "stereoL-" + strCurTime + ".mp4"; 
+	std::string strFilenameR = "stereoR-" + strCurTime + ".mp4";
+	cv::VideoWriter outputVideoL(sets.strOutPath + strFilenameL, fourcc, fps, cv::Size(w, h));
+	cv::VideoWriter outputVideoR(sets.strOutPath + strFilenameR, fourcc, fps, cv::Size(w, h));
 
 	if (!outputVideoL.isOpened() || !outputVideoR.isOpened())
 	{
@@ -61,6 +73,11 @@ int main(int argc, char **argv)
 	}
 
 	cv::destroyAllWindows();
+
+	sets.estimateZ_videoFileL = strFilenameL;
+	sets.estimateZ_videoFileR = strFilenameR;
+	if (!WriteSettings(strSettingPath, sets))
+		return -1;
 
 	return 0;
 }
