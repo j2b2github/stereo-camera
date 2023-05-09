@@ -18,7 +18,7 @@ fi
 echo "Starting docker container with stereo-vision"
 docker run -it \
 --gpus all \
--v `pwd`:/mnt \
+-v `pwd`:/workspace/projects \
 --device /dev/video0 \
 --device /dev/video1 \
 --device /dev/video2 \
