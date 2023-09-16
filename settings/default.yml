@@ -2,8 +2,8 @@
 ---
 Cam_Width: 1280
 Cam_Height: 480
-CamL_id: 2
-CamR_id: 4
+CamL_id: 4
+CamR_id: 0
 board_w: 9
 board_h: 6
 square_size: 2.4

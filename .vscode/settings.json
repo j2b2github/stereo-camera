@@ -1,0 +1,8 @@
+{
+    "cmake.debugConfig": {
+        "args":[
+            "-stereo_setting=../settings/default.yml"
+            ,"-mode=2"
+        ]
+    }
+}

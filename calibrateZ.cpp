@@ -9,15 +9,21 @@ double Distance(const cv::Point &p1, const cv::Point &p2);
 
 int main(int argc, char **argv)
 {
-    Settings sets;
+	cv::CommandLineParser parser(argc, argv,
+		"{ help || show help message }"
+		"{ stereo_setting || .yml file for stereo camera setting }"
+	);
 
-    if (argc != 2)
+	parser.about("Use this script to run calibrateZ");
+
+    if (argc == 1 || parser.has("help"))
     {
-        std::cout << "need setting file(.yml)" << std::endl;
-        return -1;
+        parser.printMessage();
+        return 0;
     }
 
-    if (!ReadSettings(argv[1], sets))
+    Settings sets;
+    if (!ReadSettings(parser.get<std::string>("stereo_setting"), sets))
 	{
 		std::cout << "read setting error." << std::endl;
 		return -1;

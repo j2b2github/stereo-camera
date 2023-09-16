@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 {
 	cv::CommandLineParser parser(argc, argv,
 		"{ help || show help message }"
-		"{ @stereo_setting || .yml file for stereo camera setting }"
+		"{ stereo_setting || .yml file for stereo camera setting }"
 		"{ mode |0| 0: source from video file "
 					"1: source from stereo camera "
 					"2: capture image for calibration Z }"
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     }
 
     Settings sets;
-	if (!ReadSettings(parser.get<std::string>("@stereo_setting"), sets))
+	if (!ReadSettings(parser.get<std::string>("stereo_setting"), sets))
 	{
 		std::cout << "read setting error." << std::endl;
 		return -1;
