@@ -5,15 +5,21 @@
 
 int main(int argc, char **argv)
 {
-    Settings sets;
+	cv::CommandLineParser parser(argc, argv,
+		"{ help || show help message }"
+		"{ stereo_setting || .yml file for stereo camera setting }"
+	);
 
-    if (argc != 2)
+	parser.about("Use this script to run calibrateZ");
+
+    if (argc == 1 || parser.has("help"))
     {
-        std::cout << "need setting file(.yml)" << std::endl;
-        return -1;
+        parser.printMessage();
+        return 0;
     }
 
-	std::string strSettingPath(argv[1]);
+    Settings sets;
+	std::string strSettingPath(parser.get<std::string>("stereo_setting"));
     if (!ReadSettings(strSettingPath, sets))
 	{
 		std::cout << "read setting error." << std::endl;
