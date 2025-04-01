@@ -2,8 +2,10 @@
 2차원 영상에서는 동일한 물체의 길이나 면적을 구하여도 카메라로 부터의 거리에 따라서 길이나 면적이 달라진다.<br/>
 stereo camera를 활용하여 거리 정보를 구하면 거리의 변화에도 동일한 물체에 대해서 동일한 길이와 면적을 구할 수 있다.<br/><br/>
 
-## 환경
-* setup_environment.sh<br/><br/>
+## 테스트 환경
+* Ubuntu 22.04 LTS
+* GTX 1660Ti
+* setup_environment.sh 를 실행<br/><br/>
 
 ## 빌드
     ```bash
